@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import HabitCard from "@/components/HabitCard";
-import HabitForm from "@/components/HabitForm";
 import AITipModal from "@/components/AITipModal";
-import { Sparkles } from "lucide-react";
+import AddHabitModal from "@/components/AddHabitModal";
+import { Loader2, Plus, Sparkles } from "lucide-react";
 import { HabitWithEntries } from "@/types/habit";
 import { getHabits, createHabit, deleteHabit } from "@/app/actions/habits";
 import { toggleHabitEntry } from "@/app/actions/entries";
@@ -18,6 +18,7 @@ export default function Home() {
   const [aiTip, setAITip] = useState<string | null>(null);
   const [aiTipLoading, setAITipLoading] = useState(false);
   const [aiTipError, setAITipError] = useState<string | null>(null);
+  const [habitModalOpen, setHabitModalOpen] = useState(false);
 
   // Load habits from server on mount
   useEffect(() => {
@@ -42,19 +43,31 @@ export default function Home() {
     }
   };
 
-  const handleAddHabit = async (name: string, color: string, icon: string) => {
+  const handleAddHabit = async ({
+    name,
+    color,
+    icon,
+  }: {
+    name: string;
+    color: string;
+    icon: string;
+  }) => {
     try {
-      setError(null);
       const result = await createHabit({ name, color, icon });
       if (result.success && result.data) {
-        // Reload habits to get the new one with entries
         await loadHabits();
-      } else {
-        setError(result.error || "Failed to create habit");
+        setError(null);
+        return { success: true };
       }
+
+      const message = result.error || "Failed to create habit";
+      setError(message);
+      return { success: false, error: message };
     } catch (err) {
       console.error("Error creating habit:", err);
-      setError("Failed to create habit");
+      const message = "Failed to create habit";
+      setError(message);
+      return { success: false, error: message };
     }
   };
 
@@ -131,124 +144,183 @@ export default function Home() {
     }
   };
 
-  const completedToday = habits.filter((habit) => {
-    const today = new Date().toISOString().split("T")[0];
-    return habit.entries.some(
-      (entry) => entry.date === today && entry.completed
-    );
-  }).length;
+  const today = useMemo(() => new Date().toISOString().split("T")[0], []);
+
+  const completedToday = habits.filter((habit) =>
+    habit.entries.some((entry) => entry.date === today && entry.completed)
+  ).length;
+
+  const bestStreak = habits.reduce((max, habit) => {
+    const sortedEntries = [...habit.entries]
+      .filter((entry) => entry.completed)
+      .sort((a, b) => b.date.localeCompare(a.date));
+
+    if (sortedEntries.length === 0) {
+      return max;
+    }
+
+    let streak = 0;
+    for (let i = 0; i < sortedEntries.length; i++) {
+      const entryDate = new Date(sortedEntries[i].date);
+      const expectedDate = new Date();
+      expectedDate.setDate(expectedDate.getDate() - i);
+
+      const entryDateStr = entryDate.toISOString().split("T")[0];
+      const expectedDateStr = expectedDate.toISOString().split("T")[0];
+
+      if (entryDateStr === expectedDateStr) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+
+    return Math.max(max, streak);
+  }, 0);
+
+  const completionRate =
+    habits.length > 0 ? Math.round((completedToday / habits.length) * 100) : 0;
+
+  const stats = [
+    {
+      label: "Active Habits",
+      value: habits.length.toString(),
+      suffix: "",
+    },
+    {
+      label: "Completed Today",
+      value: completedToday.toString(),
+      suffix: "",
+    },
+    {
+      label: "Best Streak",
+      value: `${bestStreak}`,
+      suffix: " days",
+    },
+    {
+      label: "Completion Rate",
+      value: `${completionRate}`,
+      suffix: "%",
+    },
+  ];
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-        <div className="container mx-auto px-4 py-8 max-w-6xl">
-          <div className="flex items-center justify-center min-h-[60vh]">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-              <p className="text-gray-600 dark:text-gray-400">Loading habits...</p>
-            </div>
-          </div>
+      <main className="flex min-h-screen items-center justify-center bg-brand-cream">
+        <div className="flex flex-col items-center gap-3 text-brand-dark/70">
+          <Loader2 className="h-8 w-8 animate-spin text-brand-dark" />
+          <p className="text-sm font-medium tracking-wide">Preparing your dashboard…</p>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        {/* Header */}
-        <div className="mb-8 flex items-start justify-between">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-              Habit Tracker
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Build better habits, one day at a time
+    <main className="relative min-h-screen bg-brand-cream pb-24">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-6 py-10">
+        <header className="flex flex-wrap items-center justify-between gap-6">
+          <div className="space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.4em] text-brand-dark/50">
+              Daily Rituals
+            </p>
+            <h1 className="text-4xl font-semibold text-brand-dark">Habit Companion</h1>
+            <p className="text-sm text-brand-dark/70">
+              A calm space to keep your commitments and build momentum.
             </p>
           </div>
           <button
             onClick={handleGetAITip}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all"
+            className="inline-flex items-center gap-2 rounded-full border border-brand-dark/20 bg-white px-6 py-2 text-sm font-semibold text-brand-dark shadow-subtle/40 transition hover:border-brand-dark/40 hover:shadow-subtle"
           >
-            <Sparkles className="w-5 h-5" />
-            AI Tip
+            <Sparkles className="h-4 w-4" />
+            AI Inspiration
           </button>
-        </div>
+        </header>
 
-        {/* Error Message */}
         {error && (
-          <div className="mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 px-4 py-3 rounded-lg">
-            <p className="font-medium">Error: {error}</p>
-            <button
-              onClick={() => setError(null)}
-              className="text-sm underline mt-1"
+          <div className="rounded-3xl border border-brand-dark/20 bg-white px-6 py-4 text-sm text-brand-dark">
+            <div className="flex items-center justify-between gap-4">
+              <p className="font-medium">Error: {error}</p>
+              <button
+                onClick={() => setError(null)}
+                className="text-xs font-semibold uppercase tracking-widest text-brand-dark/60 underline-offset-4 hover:underline"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
+
+        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {stats.map((stat) => (
+            <div
+              key={stat.label}
+              className="rounded-3xl border border-brand-dark/10 bg-white p-6 shadow-subtle/40 transition hover:shadow-subtle"
             >
-              Dismiss
-            </button>
-          </div>
-        )}
+              <p className="text-xs font-semibold uppercase tracking-[0.4em] text-brand-dark/50">
+                {stat.label}
+              </p>
+              <p className="mt-3 text-3xl font-semibold text-brand-dark">
+                {stat.value}
+                {stat.suffix && (
+                  <span className="text-base font-normal text-brand-dark/60">
+                    {stat.suffix}
+                  </span>
+                )}
+              </p>
+            </div>
+          ))}
+        </section>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">
-              {habits.length}
+        <section className="space-y-4">
+          {habits.length === 0 ? (
+            <div className="rounded-3xl border border-dashed border-brand-dark/20 bg-white px-10 py-16 text-center shadow-subtle/30">
+              <h2 className="text-2xl font-semibold text-brand-dark">
+                Create your first habit
+              </h2>
+              <p className="mt-3 text-sm text-brand-dark/70">
+                Capture a simple routine you can stick with daily. Start small, stay
+                steady.
+              </p>
+              <div className="mt-6">
+                <button
+                  onClick={() => setHabitModalOpen(true)}
+                  className="inline-flex items-center gap-2 rounded-full bg-brand-dark px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-dark-soft"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Habit
+                </button>
+              </div>
             </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              Total Habits
+          ) : (
+            <div className="space-y-5">
+              {habits.map((habit) => (
+                <HabitCard
+                  key={habit.id}
+                  habit={habit}
+                  onToggle={handleToggleHabit}
+                  onDelete={handleDeleteHabit}
+                />
+              ))}
             </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
-            <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-              {completedToday}
-            </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              Completed Today
-            </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
-            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-              {habits.length > 0
-                ? Math.round((completedToday / habits.length) * 100)
-                : 0}
-              %
-            </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              Completion Rate
-            </div>
-          </div>
-        </div>
-
-        {/* Add Habit Form */}
-        <div className="mb-8">
-          <HabitForm onSubmit={handleAddHabit} />
-        </div>
-
-        {/* Habits List */}
-        {habits.length === 0 ? (
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-12 text-center">
-            <p className="text-gray-500 dark:text-gray-400 text-lg mb-2">
-              No habits yet
-            </p>
-            <p className="text-gray-400 dark:text-gray-500 text-sm">
-              Add your first habit to get started!
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {habits.map((habit) => (
-              <HabitCard
-                key={habit.id}
-                habit={habit}
-                onToggle={handleToggleHabit}
-                onDelete={handleDeleteHabit}
-              />
-            ))}
-          </div>
-        )}
+          )}
+        </section>
       </div>
 
-      {/* AI Tip Modal */}
+      <button
+        onClick={() => setHabitModalOpen(true)}
+        className="fixed bottom-8 right-8 flex h-14 w-14 items-center justify-center rounded-full bg-brand-dark text-white shadow-subtle transition hover:bg-brand-dark-soft focus:outline-none focus:ring-4 focus:ring-brand-dark/30"
+        aria-label="Add new habit"
+      >
+        <Plus className="h-6 w-6" />
+      </button>
+
+      <AddHabitModal
+        isOpen={habitModalOpen}
+        onClose={() => setHabitModalOpen(false)}
+        onSubmit={handleAddHabit}
+      />
+
       <AITipModal
         isOpen={aiTipModalOpen}
         onClose={() => {

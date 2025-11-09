@@ -11,18 +11,22 @@ export function checkSupabaseEnv(): { valid: boolean; error?: string } {
     process.env.SUPABASE_ANON_KEY;
 
   if (!supabaseUrl) {
+    const isProduction = process.env.VERCEL || process.env.NODE_ENV === "production";
     return {
       valid: false,
-      error:
-        "Supabase URL is not set. Please set NEXT_PUBLIC_SUPABASE_URL or SUPABASE_URL in your .env.local file.",
+      error: isProduction
+        ? "Supabase URL is not set. Please configure NEXT_PUBLIC_SUPABASE_URL in your Vercel project settings (Settings > Environment Variables)."
+        : "Supabase URL is not set. Please set NEXT_PUBLIC_SUPABASE_URL or SUPABASE_URL in your .env.local file.",
     };
   }
 
   if (!supabaseKey) {
+    const isProduction = process.env.VERCEL || process.env.NODE_ENV === "production";
     return {
       valid: false,
-      error:
-        "Supabase key is not set. Please set NEXT_PUBLIC_SUPABASE_ANON_KEY or SUPABASE_KEY in your .env.local file.",
+      error: isProduction
+        ? "Supabase key is not set. Please configure NEXT_PUBLIC_SUPABASE_ANON_KEY in your Vercel project settings (Settings > Environment Variables)."
+        : "Supabase key is not set. Please set NEXT_PUBLIC_SUPABASE_ANON_KEY or SUPABASE_KEY in your .env.local file.",
     };
   }
 

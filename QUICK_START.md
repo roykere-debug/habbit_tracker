@@ -82,3 +82,9 @@ If you see errors, check:
 - Get your API key from: https://platform.openai.com/api-keys
 - Restart the dev server after adding the key
 
+**Error: "Supabase URL is not set" on Vercel deployment**
+- `.env.local` files are not deployed to Vercel
+- Add environment variables in Vercel Dashboard > Settings > Environment Variables
+- See `VERCEL_DEPLOY.md` for detailed instructions
+- Make sure to redeploy after adding variables
+

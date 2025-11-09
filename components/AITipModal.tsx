@@ -50,41 +50,41 @@ export default function AITipModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between border-b border-brand-dark/10 bg-white p-6">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg">
-              <Sparkles className="w-5 h-5 text-white" />
+            <div className="rounded-full bg-brand-dark/10 p-2">
+              <Sparkles className="h-5 w-5 text-brand-dark" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-2xl font-semibold text-brand-dark">
               AI Habit Tip
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            className="rounded-full p-2 text-brand-dark/50 transition hover:bg-brand-dark/10 hover:text-brand-dark"
             aria-label="Close modal"
           >
-            <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+            <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto bg-white p-6">
           {loading && (
             <div className="flex flex-col items-center justify-center py-12">
-              <Loader2 className="w-12 h-12 text-purple-500 animate-spin mb-4" />
-              <p className="text-gray-600 dark:text-gray-400">
+              <Loader2 className="mb-4 h-10 w-10 animate-spin text-brand-dark" />
+              <p className="text-sm text-brand-dark/70">
                 Getting your personalized tip...
               </p>
             </div>
           )}
 
           {error && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-              <p className="text-red-800 dark:text-red-200 font-medium mb-2">
+            <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-brand-dark">
+              <p className="mb-2 font-semibold">
                 Error
               </p>
-              <p className="text-red-700 dark:text-red-300 text-sm">
+              <p className="text-sm">
                 {error}
               </p>
             </div>
@@ -92,13 +92,13 @@ export default function AITipModal({
 
           {tip && !loading && (
             <div className="space-y-4">
-              <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg p-6 border border-purple-200 dark:border-purple-800">
-                <p className="text-lg text-gray-800 dark:text-gray-200 leading-relaxed whitespace-pre-wrap">
+              <div className="rounded-3xl border border-brand-dark/10 bg-brand-dark/5 p-6">
+                <p className="text-lg leading-relaxed text-brand-dark whitespace-pre-wrap">
                   {tip}
                 </p>
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                <Sparkles className="w-4 h-4" />
+              <div className="flex items-center gap-2 text-sm text-brand-dark/60">
+                <Sparkles className="h-4 w-4" />
                 <span>Powered by OpenAI</span>
               </div>
             </div>
@@ -106,10 +106,10 @@ export default function AITipModal({
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+        <div className="flex justify-end border-t border-brand-dark/10 bg-white p-6">
           <button
             onClick={onClose}
-            className="px-6 py-2 bg-purple-500 hover:bg-purple-600 text-white font-medium rounded-lg transition-colors"
+            className="rounded-full bg-brand-dark px-6 py-2 text-sm font-semibold text-white transition hover:bg-brand-dark-soft"
           >
             Got it!
           </button>

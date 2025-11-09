@@ -1,65 +1,62 @@
 "use client";
 
 import { useState } from "react";
-import { Plus } from "lucide-react";
 
 interface HabitFormProps {
-  onSubmit: (name: string, color: string, icon: string) => void;
+  onSubmit: (values: {
+    name: string;
+    color: string;
+    icon: string;
+  }) => Promise<{ success: boolean; error?: string }>;
+  onCancel: () => void;
 }
 
-const COLORS = [
-  "#3B82F6", // blue
-  "#10B981", // green
-  "#F59E0B", // amber
-  "#EF4444", // red
-  "#8B5CF6", // purple
-  "#EC4899", // pink
-  "#06B6D4", // cyan
-  "#F97316", // orange
-];
+const COLORS = ["#0f3d2e", "#14503c", "#1e624b", "#2a755a"];
 
 const ICONS = ["💪", "📚", "🏃", "🧘", "💧", "🥗", "✍️", "🎯", "📖", "🎨", "🎵", "🌱"];
 
-export default function HabitForm({ onSubmit }: HabitFormProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export default function HabitForm({ onSubmit, onCancel }: HabitFormProps) {
   const [name, setName] = useState("");
   const [selectedColor, setSelectedColor] = useState(COLORS[0]);
   const [selectedIcon, setSelectedIcon] = useState(ICONS[0]);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (name.trim()) {
-      onSubmit(name.trim(), selectedColor, selectedIcon);
-      setName("");
-      setIsOpen(false);
+    if (!name.trim()) {
+      setError("Please provide a name for your habit.");
+      return;
     }
+
+    setSubmitting(true);
+    setError(null);
+
+    const result = await onSubmit({
+      name: name.trim(),
+      color: selectedColor,
+      icon: selectedIcon,
+    });
+
+    setSubmitting(false);
+
+    if (result.success) {
+      setName("");
+      setSelectedColor(COLORS[0]);
+      setSelectedIcon(ICONS[0]);
+      onCancel();
+      return;
+    }
+
+    setError(result.error ?? "Something went wrong. Please try again.");
   };
 
-  if (!isOpen) {
-    return (
-      <button
-        onClick={() => setIsOpen(true)}
-        className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-4 px-6 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
-      >
-        <Plus className="w-5 h-5" />
-        Add New Habit
-      </button>
-    );
-  }
-
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 shadow-md"
-    >
-      <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-        Add New Habit
-      </h2>
-
-      <div className="mb-4">
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-2">
         <label
           htmlFor="habit-name"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          className="text-sm font-medium text-brand-dark uppercase tracking-wide"
         >
           Habit Name
         </label>
@@ -68,69 +65,78 @@ export default function HabitForm({ onSubmit }: HabitFormProps) {
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="e.g., Exercise, Read, Meditate"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+          placeholder="e.g., Morning meditation"
+          className="w-full rounded-xl border border-brand-dark/20 bg-brand-cream px-4 py-3 text-base text-brand-dark placeholder:text-brand-dark/50 focus:border-brand-dark focus:outline-none focus:ring-2 focus:ring-brand-dark/20"
           autoFocus
         />
       </div>
 
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+      <div className="space-y-3">
+        <p className="text-sm font-medium text-brand-dark uppercase tracking-wide">
           Icon
-        </label>
+        </p>
         <div className="grid grid-cols-6 gap-2">
-          {ICONS.map((icon) => (
-            <button
-              key={icon}
-              type="button"
-              onClick={() => setSelectedIcon(icon)}
-              className={`w-12 h-12 text-2xl rounded-lg border-2 transition-all ${
-                selectedIcon === icon
-                  ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30"
-                  : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
-              }`}
-            >
-              {icon}
-            </button>
-          ))}
+          {ICONS.map((icon) => {
+            const isSelected = selectedIcon === icon;
+            return (
+              <button
+                key={icon}
+                type="button"
+                onClick={() => setSelectedIcon(icon)}
+                className={`flex h-12 w-12 items-center justify-center rounded-xl border transition-all ${
+                  isSelected
+                    ? "border-brand-dark bg-brand-dark/10 text-brand-dark"
+                    : "border-brand-dark/10 bg-white text-brand-dark hover:border-brand-dark/30"
+                }`}
+              >
+                <span className="text-xl">{icon}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Color
-        </label>
-        <div className="flex gap-2">
-          {COLORS.map((color) => (
-            <button
-              key={color}
-              type="button"
-              onClick={() => setSelectedColor(color)}
-              className={`w-10 h-10 rounded-full border-2 transition-all ${
-                selectedColor === color
-                  ? "border-gray-900 dark:border-white scale-110"
-                  : "border-gray-300 dark:border-gray-600 hover:scale-105"
-              }`}
-              style={{ backgroundColor: color }}
-            />
-          ))}
+      <div className="space-y-3">
+        <p className="text-sm font-medium text-brand-dark uppercase tracking-wide">
+          Accent Color
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {COLORS.map((color) => {
+            const isSelected = selectedColor === color;
+            return (
+              <button
+                key={color}
+                type="button"
+                onClick={() => setSelectedColor(color)}
+                style={{ backgroundColor: color }}
+                className={`h-10 w-10 rounded-full border-2 transition-all ${
+                  isSelected ? "border-black shadow-subtle scale-110" : "border-transparent"
+                }`}
+              />
+            );
+          })}
         </div>
       </div>
 
-      <div className="flex gap-3">
+      {error && (
+        <p className="rounded-xl border border-red-200 bg-red-100/60 px-4 py-2 text-sm text-red-700">
+          {error}
+        </p>
+      )}
+
+      <div className="flex items-center gap-3">
         <button
           type="submit"
-          className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+          disabled={submitting}
+          className="flex-1 rounded-xl bg-brand-dark px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-dark-soft disabled:opacity-60"
         >
-          Add Habit
+          {submitting ? "Saving..." : "Save Habit"}
         </button>
         <button
           type="button"
-          onClick={() => {
-            setIsOpen(false);
-            setName("");
-          }}
-          className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          onClick={onCancel}
+          disabled={submitting}
+          className="rounded-xl border border-brand-dark/20 px-5 py-3 text-sm font-semibold text-brand-dark transition hover:border-brand-dark/40 disabled:opacity-60"
         >
           Cancel
         </button>
@@ -138,4 +144,3 @@ export default function HabitForm({ onSubmit }: HabitFormProps) {
     </form>
   );
 }
-
