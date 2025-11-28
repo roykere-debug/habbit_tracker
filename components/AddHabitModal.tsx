@@ -47,10 +47,10 @@ export default function AddHabitModal({
       role="dialog"
       aria-modal="true"
     >
-      <div className="relative w-full max-w-lg rounded-3xl bg-white p-8 shadow-subtle">
+      <div className="relative w-full max-w-lg glass-strong p-8 shadow-subtle">
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-brand-dark/10 text-brand-dark transition hover:border-brand-dark/30 hover:text-brand-dark-soft"
+          className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center border border-brand-dark/10 text-brand-dark transition hover:border-brand-dark/30 hover:text-brand-dark-soft"
           aria-label="Close"
         >
           <X className="h-5 w-5" />

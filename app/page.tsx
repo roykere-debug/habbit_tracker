@@ -8,7 +8,7 @@ import { Loader2, Plus, Sparkles } from "lucide-react";
 import { HabitWithEntries } from "@/types/habit";
 import { getHabits, createHabit, deleteHabit } from "@/app/actions/habits";
 import { toggleHabitEntry } from "@/app/actions/entries";
-import { getAITip } from "@/app/actions/ai";
+import { getAITip, getHabitInsights } from "@/app/actions/ai";
 
 export default function Home() {
   const [habits, setHabits] = useState<HabitWithEntries[]>([]);
@@ -18,6 +18,7 @@ export default function Home() {
   const [aiTip, setAITip] = useState<string | null>(null);
   const [aiTipLoading, setAITipLoading] = useState(false);
   const [aiTipError, setAITipError] = useState<string | null>(null);
+  const [aiTipHabitName, setAITipHabitName] = useState<string | undefined>(undefined);
   const [habitModalOpen, setHabitModalOpen] = useState(false);
 
   // Load habits from server on mount
@@ -128,6 +129,7 @@ export default function Home() {
     setAITipLoading(true);
     setAITipError(null);
     setAITip(null);
+    setAITipHabitName(undefined);
 
     try {
       const result = await getAITip();
@@ -139,6 +141,28 @@ export default function Home() {
     } catch (err) {
       console.error("Error getting AI tip:", err);
       setAITipError("Failed to get AI tip. Please try again.");
+    } finally {
+      setAITipLoading(false);
+    }
+  };
+
+  const handleGetHabitInsights = async (habit: HabitWithEntries) => {
+    setAITipModalOpen(true);
+    setAITipLoading(true);
+    setAITipError(null);
+    setAITip(null);
+    setAITipHabitName(habit.name);
+
+    try {
+      const result = await getHabitInsights(habit);
+      if (result.success && result.insights) {
+        setAITip(result.insights);
+      } else {
+        setAITipError(result.error || "Failed to get habit insights");
+      }
+    } catch (err) {
+      console.error("Error getting habit insights:", err);
+      setAITipError("Failed to get habit insights. Please try again.");
     } finally {
       setAITipLoading(false);
     }
@@ -223,14 +247,14 @@ export default function Home() {
             <p className="text-xs font-semibold uppercase tracking-[0.4em] text-brand-dark/50">
               Daily Rituals
             </p>
-            <h1 className="text-4xl font-semibold text-brand-dark">Habit Companion</h1>
+            <h1 className="text-6xl font-semibold text-brand-dark">Habit Companion</h1>
             <p className="text-sm text-brand-dark/70">
               A calm space to keep your commitments and build momentum.
             </p>
           </div>
           <button
             onClick={handleGetAITip}
-            className="inline-flex items-center gap-2 rounded-full border border-brand-dark/20 bg-white px-6 py-2 text-sm font-semibold text-brand-dark shadow-subtle/40 transition hover:border-brand-dark/40 hover:shadow-subtle"
+            className="inline-flex items-center gap-2 border border-brand-dark/20 glass px-6 py-2 text-sm font-semibold text-brand-dark shadow-subtle/40 transition hover:border-brand-dark/40 hover:shadow-subtle"
           >
             <Sparkles className="h-4 w-4" />
             AI Inspiration
@@ -238,7 +262,7 @@ export default function Home() {
         </header>
 
         {error && (
-          <div className="rounded-3xl border border-brand-dark/20 bg-white px-6 py-4 text-sm text-brand-dark">
+          <div className="border border-brand-dark/20 glass px-6 py-4 text-sm text-brand-dark">
             <div className="flex items-center justify-between gap-4">
               <p className="font-medium">Error: {error}</p>
               <button
@@ -255,7 +279,7 @@ export default function Home() {
           {stats.map((stat) => (
             <div
               key={stat.label}
-              className="rounded-3xl border border-brand-dark/10 bg-white p-6 shadow-subtle/40 transition hover:shadow-subtle"
+              className="glass border border-brand-dark/10 p-6 shadow-subtle/40 transition hover:shadow-subtle"
             >
               <p className="text-xs font-semibold uppercase tracking-[0.4em] text-brand-dark/50">
                 {stat.label}
@@ -274,7 +298,7 @@ export default function Home() {
 
         <section className="space-y-4">
           {habits.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-brand-dark/20 bg-white px-10 py-16 text-center shadow-subtle/30">
+            <div className="glass border border-dashed border-brand-dark/20 px-10 py-16 text-center shadow-subtle/30">
               <h2 className="text-2xl font-semibold text-brand-dark">
                 Create your first habit
               </h2>
@@ -285,7 +309,7 @@ export default function Home() {
               <div className="mt-6">
                 <button
                   onClick={() => setHabitModalOpen(true)}
-                  className="inline-flex items-center gap-2 rounded-full bg-brand-dark px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-dark-soft"
+                  className="inline-flex items-center gap-2 bg-brand-dark px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-dark-soft"
                 >
                   <Plus className="h-4 w-4" />
                   Add Habit
@@ -300,6 +324,7 @@ export default function Home() {
                   habit={habit}
                   onToggle={handleToggleHabit}
                   onDelete={handleDeleteHabit}
+                  onGetInsights={handleGetHabitInsights}
                 />
               ))}
             </div>
@@ -312,7 +337,7 @@ export default function Home() {
         className="fixed bottom-8 right-8 flex h-14 w-14 items-center justify-center rounded-full bg-brand-dark text-white shadow-subtle transition hover:bg-brand-dark-soft focus:outline-none focus:ring-4 focus:ring-brand-dark/30"
         aria-label="Add new habit"
       >
-        <Plus className="h-6 w-6" />
+        <Plus className="h-6 w-6 animate-wiggle" />
       </button>
 
       <AddHabitModal
@@ -327,10 +352,12 @@ export default function Home() {
           setAITipModalOpen(false);
           setAITip(null);
           setAITipError(null);
+          setAITipHabitName(undefined);
         }}
         tip={aiTip}
         loading={aiTipLoading}
         error={aiTipError}
+        habitName={aiTipHabitName}
       />
     </main>
   );

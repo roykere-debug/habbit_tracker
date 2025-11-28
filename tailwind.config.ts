@@ -18,6 +18,16 @@ const config: Config = {
       boxShadow: {
         subtle: "0 10px 30px -20px rgba(15, 61, 46, 0.3)",
       },
+      keyframes: {
+        wiggle: {
+          "0%, 100%": { transform: "rotate(0deg)" },
+          "25%": { transform: "rotate(-3deg)" },
+          "75%": { transform: "rotate(3deg)" },
+        },
+      },
+      animation: {
+        wiggle: "wiggle 2s ease-in-out infinite",
+      },
     },
   },
   plugins: [],

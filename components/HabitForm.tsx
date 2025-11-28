@@ -66,7 +66,7 @@ export default function HabitForm({ onSubmit, onCancel }: HabitFormProps) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g., Morning meditation"
-          className="w-full rounded-xl border border-brand-dark/20 bg-brand-cream px-4 py-3 text-base text-brand-dark placeholder:text-brand-dark/50 focus:border-brand-dark focus:outline-none focus:ring-2 focus:ring-brand-dark/20"
+          className="w-full border border-brand-dark/20 bg-brand-cream px-4 py-3 text-base text-brand-dark placeholder:text-brand-dark/50 focus:border-brand-dark focus:outline-none focus:ring-2 focus:ring-brand-dark/20"
           autoFocus
         />
       </div>
@@ -83,7 +83,7 @@ export default function HabitForm({ onSubmit, onCancel }: HabitFormProps) {
                 key={icon}
                 type="button"
                 onClick={() => setSelectedIcon(icon)}
-                className={`flex h-12 w-12 items-center justify-center rounded-xl border transition-all ${
+                className={`flex h-12 w-12 items-center justify-center border transition-all ${
                   isSelected
                     ? "border-brand-dark bg-brand-dark/10 text-brand-dark"
                     : "border-brand-dark/10 bg-white text-brand-dark hover:border-brand-dark/30"
@@ -109,7 +109,7 @@ export default function HabitForm({ onSubmit, onCancel }: HabitFormProps) {
                 type="button"
                 onClick={() => setSelectedColor(color)}
                 style={{ backgroundColor: color }}
-                className={`h-10 w-10 rounded-full border-2 transition-all ${
+                className={`h-10 w-10 border-2 transition-all ${
                   isSelected ? "border-black shadow-subtle scale-110" : "border-transparent"
                 }`}
               />
@@ -119,7 +119,7 @@ export default function HabitForm({ onSubmit, onCancel }: HabitFormProps) {
       </div>
 
       {error && (
-        <p className="rounded-xl border border-red-200 bg-red-100/60 px-4 py-2 text-sm text-red-700">
+        <p className="border border-red-200 bg-red-100/60 px-4 py-2 text-sm text-red-700">
           {error}
         </p>
       )}
@@ -128,7 +128,7 @@ export default function HabitForm({ onSubmit, onCancel }: HabitFormProps) {
         <button
           type="submit"
           disabled={submitting}
-          className="flex-1 rounded-xl bg-brand-dark px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-dark-soft disabled:opacity-60"
+          className="flex-1 bg-brand-dark px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-dark-soft disabled:opacity-60"
         >
           {submitting ? "Saving..." : "Save Habit"}
         </button>
@@ -136,7 +136,7 @@ export default function HabitForm({ onSubmit, onCancel }: HabitFormProps) {
           type="button"
           onClick={onCancel}
           disabled={submitting}
-          className="rounded-xl border border-brand-dark/20 px-5 py-3 text-sm font-semibold text-brand-dark transition hover:border-brand-dark/40 disabled:opacity-60"
+          className="border border-brand-dark/20 px-5 py-3 text-sm font-semibold text-brand-dark transition hover:border-brand-dark/40 disabled:opacity-60"
         >
           Cancel
         </button>

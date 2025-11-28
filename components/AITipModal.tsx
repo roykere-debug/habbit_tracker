@@ -9,6 +9,7 @@ interface AITipModalProps {
   tip: string | null;
   loading: boolean;
   error: string | null;
+  habitName?: string;
 }
 
 export default function AITipModal({
@@ -17,6 +18,7 @@ export default function AITipModal({
   tip,
   loading,
   error,
+  habitName,
 }: AITipModalProps) {
   // Close on escape key
   useEffect(() => {
@@ -46,22 +48,22 @@ export default function AITipModal({
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col"
+        className="glass-strong shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-brand-dark/10 bg-white p-6">
+        <div className="flex items-center justify-between border-b border-brand-dark/10 p-6">
           <div className="flex items-center gap-3">
             <div className="rounded-full bg-brand-dark/10 p-2">
               <Sparkles className="h-5 w-5 text-brand-dark" />
             </div>
             <h2 className="text-2xl font-semibold text-brand-dark">
-              AI Habit Tip
+              {habitName ? `AI Insights: ${habitName}` : "AI Habit Tip"}
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="rounded-full p-2 text-brand-dark/50 transition hover:bg-brand-dark/10 hover:text-brand-dark"
+            className="p-2 text-brand-dark/50 transition hover:bg-brand-dark/10 hover:text-brand-dark"
             aria-label="Close modal"
           >
             <X className="h-5 w-5" />
@@ -69,18 +71,18 @@ export default function AITipModal({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto bg-white p-6">
+        <div className="flex-1 overflow-y-auto p-6">
           {loading && (
             <div className="flex flex-col items-center justify-center py-12">
               <Loader2 className="mb-4 h-10 w-10 animate-spin text-brand-dark" />
               <p className="text-sm text-brand-dark/70">
-                Getting your personalized tip...
+                {habitName ? "Analyzing your habit performance..." : "Getting your personalized tip..."}
               </p>
             </div>
           )}
 
           {error && (
-            <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-brand-dark">
+            <div className="border border-red-200 bg-red-50 p-4 text-brand-dark">
               <p className="mb-2 font-semibold">
                 Error
               </p>
@@ -92,7 +94,7 @@ export default function AITipModal({
 
           {tip && !loading && (
             <div className="space-y-4">
-              <div className="rounded-3xl border border-brand-dark/10 bg-brand-dark/5 p-6">
+              <div className="border border-brand-dark/10 bg-brand-dark/5 p-6">
                 <p className="text-lg leading-relaxed text-brand-dark whitespace-pre-wrap">
                   {tip}
                 </p>
@@ -106,10 +108,10 @@ export default function AITipModal({
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end border-t border-brand-dark/10 bg-white p-6">
+        <div className="flex justify-end border-t border-brand-dark/10 p-6">
           <button
             onClick={onClose}
-            className="rounded-full bg-brand-dark px-6 py-2 text-sm font-semibold text-white transition hover:bg-brand-dark-soft"
+            className="bg-brand-dark px-6 py-2 text-sm font-semibold text-white transition hover:bg-brand-dark-soft"
           >
             Got it!
           </button>
